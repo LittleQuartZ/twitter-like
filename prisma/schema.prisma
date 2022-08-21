@@ -16,20 +16,10 @@ model User {
   username String @unique
 
   // Followers is related to User following id in Follows
-  followedBy Follows[] @relation("following")
-  following  Follows[] @relation("follower")
+  followedBy User[] @relation("UserFollows")
+  following  User[] @relation("UserFollows")
 
   posts Post[]
-}
-
-model Follows {
-  follower   User   @relation("follower", fields: [followerId], references: [id])
-  followerId String
-
-  following   User   @relation("following", fields: [followingId], references: [id])
-  followingId String
-
-  @@id([followerId, followingId])
 }
 
 model Post {

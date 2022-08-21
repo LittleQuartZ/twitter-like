@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
 import { trpc } from '@/utils/trpc'
 import { useState } from 'react'
-import { User, Prisma } from '@prisma/client'
 
 const Index: NextPage = () => {
   // states
@@ -13,6 +12,11 @@ const Index: NextPage = () => {
   // hooks
   const utils = trpc.useContext()
   const userCreateMutation = trpc.useMutation('user.create', {
+    onSuccess() {
+      utils.invalidateQueries(['user.find'])
+    },
+  })
+  const userFollowMutation = trpc.useMutation('user.follow', {
     onSuccess() {
       utils.invalidateQueries(['user.find'])
     },
@@ -33,6 +37,11 @@ const Index: NextPage = () => {
   ])
   const { data: postData } = trpc.useQuery(['post.find', { id: undefined }])
 
+  const [followId, followedId] = [
+    '9f883b59-e9a6-4221-ac0d-06cadcc2cf9e',
+    '18ed6f74-03e6-4dad-bfa5-e5d655d776a5',
+  ]
+
   // Submit handler for user creation
   const createUser = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -51,6 +60,10 @@ const Index: NextPage = () => {
 
   const deletePost = (id: number) => {
     postDeleteMutation.mutate({ id })
+  }
+
+  const followUser = () => {
+    userFollowMutation.mutate({ followerId: followId, followingId: followedId })
   }
 
   // Error handling, should probably make a new component
@@ -84,14 +97,17 @@ const Index: NextPage = () => {
       </form>
       {userData && userData.length !== 0 ? (
         userData
-          .filter((user: User) =>
+          .filter(user =>
             // case-insensitive filter by username if usernameSearch is set
             user.username.toLowerCase().includes(usernameSearch.toLowerCase())
           )
-          .map((user: User) => <h1 key={user.id}>{user.username}</h1>)
+          .map(user => <h1 key={user.id}>{user.username}</h1>)
       ) : (
         <h1>No users found</h1>
       )}
+      <button type='button' onClick={() => followUser()}>
+        FOLLOW
+      </button>
 
       <form onSubmit={createPost}>
         <input
@@ -126,6 +142,9 @@ const Index: NextPage = () => {
       </form>
 
       {errorElement}
+      <button type='button' onClick={() => console.table(userData)}>
+        CHECK
+      </button>
     </div>
   )
 }
