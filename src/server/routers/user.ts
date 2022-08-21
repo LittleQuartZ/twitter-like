@@ -14,8 +14,11 @@ export const userRouter = createRouter()
         .regex(/^[A-Za-z0-9_]+$/, {
           message: 'Username must only contains letters and numbers',
         })
-        .max(15, {
-          message: 'Username must be less than 15 characters',
+        .max(20, {
+          message: 'Username must be less than 20 characters',
+        })
+        .min(5, {
+          message: 'Username must be at least 5 characters',
         }),
     }),
     async resolve({ input }) {
@@ -28,14 +31,15 @@ export const userRouter = createRouter()
 
         return response
       } catch (error: unknown) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
           // The .code property can be accessed in a type-safe manner
-          if (error.code === 'P2002') {
-            throw new trpc.TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Username already exists',
-            })
-          }
+          throw new trpc.TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Username already exists',
+          })
         } else if (error instanceof ZodError) {
           throw new trpc.TRPCError({
             code: 'BAD_REQUEST',

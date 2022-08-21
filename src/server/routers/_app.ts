@@ -3,6 +3,7 @@
  */
 import { ZodError } from 'zod'
 import { createRouter } from '../createRouter'
+import { postRouter } from './post'
 import { userRouter } from './user'
 
 /**
@@ -33,5 +34,6 @@ export const appRouter = createRouter()
    * Merge `postRouter` under `post.`
    */
   .merge('user.', userRouter)
+  .merge('post.', postRouter)
 
 export type AppRouter = typeof appRouter
