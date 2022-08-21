@@ -5,9 +5,21 @@ import { loggerLink } from '@trpc/client/links/loggerLink'
 import { withTRPC } from '@trpc/next'
 import { AppRouter } from '@/server/routers/_app'
 import { SSRContext } from '@/utils/trpc'
+import Head from 'next/head'
 
 function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+  return (
+    <>
+      <Head>
+        <title>Twitter Like</title>
+        <meta
+          name='viewport'
+          content='minimum-scale=1, initial-scale=1, width=device-width'
+        />
+      </Head>
+      <Component {...pageProps} />
+    </>
+  )
 }
 
 function getBaseUrl() {
