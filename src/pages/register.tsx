@@ -12,7 +12,7 @@ import { trpc } from '@/utils/trpc'
 const Register: NextPage = () => {
   const router = useRouter()
 
-  const { register, handleSubmit } = useForm<IRegister>({
+  const { register, handleSubmit, formState } = useForm<IRegister>({
     resolver: zodResolver(registerSchema),
   })
 
@@ -56,6 +56,10 @@ const Register: NextPage = () => {
           </div>
         </form>
       </main>
+
+      {Object.values(formState.errors).map(({ message }) => (
+        <p>{message}</p>
+      ))}
     </div>
   )
 }

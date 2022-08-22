@@ -1,19 +1,27 @@
 import { createRouter } from '../createRouter'
-import { z, ZodError } from 'zod'
+import { z } from 'zod'
 import { prisma } from '../prisma'
 import * as trpc from '@trpc/server'
 import { Prisma } from '@prisma/client'
 import { registerSchema } from '@/utils/validation/auth'
 import { hash } from 'argon2'
 
+const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
+  id: true,
+  username: true,
+  password: false,
+  following: true,
+  followedBy: true,
+})
+
 export const userRouter = createRouter()
   .mutation('create', {
     input: registerSchema,
     async resolve({ input }) {
       const { username, password } = input
-      try {
-        const hashedPassword = await hash(password)
+      const hashedPassword = await hash(password)
 
+      try {
         const response = await prisma.user.create({
           data: {
             username,
@@ -23,40 +31,45 @@ export const userRouter = createRouter()
 
         return response
       } catch (error: unknown) {
+        // Catch prisma conflict error
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
           error.code === 'P2002'
         ) {
-          // The .code property can be accessed in a type-safe manner
           throw new trpc.TRPCError({
             code: 'CONFLICT',
             message: 'Username already exists',
-          })
-        } else if (error instanceof ZodError) {
-          throw new trpc.TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Invalid input',
             cause: error,
           })
         } else {
-          throw new trpc.TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Internal server error',
-            cause: error,
-          })
+          throw error
         }
       }
     },
   })
-  .query('find', {
+  .query('all', {
+    async resolve() {
+      const response = await prisma.user.findMany({ select: defaultUserSelect })
+
+      return response
+    },
+  })
+  .query('byId', {
     input: z.object({
-      username: z.string().optional(),
+      id: z.string().uuid(),
     }),
     async resolve({ input }) {
-      const response = await prisma.user.findMany({
-        where: { username: input.username || undefined },
-        include: { following: true, followedBy: true },
+      const response = await prisma.user.findFirst({
+        where: { id: input.id },
+        select: defaultUserSelect,
       })
+
+      if (!response) {
+        throw new trpc.TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        })
+      }
 
       return response
     },
@@ -78,6 +91,13 @@ export const userRouter = createRouter()
     }),
     async resolve({ input }) {
       try {
+        if (input.followerId === input.followingId) {
+          throw new trpc.TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Cannot follow yourself',
+          })
+        }
+
         const response = await prisma.$transaction([
           prisma.user.update({
             where: { id: input.followerId },
@@ -103,23 +123,12 @@ export const userRouter = createRouter()
           error instanceof Prisma.PrismaClientKnownRequestError &&
           error.code === 'P2025'
         ) {
-          // The .code property can be accessed in a type-safe manner
           throw new trpc.TRPCError({
-            code: 'BAD_REQUEST',
+            code: 'NOT_FOUND',
             message: 'There is no user found with given UUID',
           })
-        } else if (error instanceof ZodError) {
-          throw new trpc.TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Invalid input',
-            cause: error,
-          })
         } else {
-          throw new trpc.TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Internal server error',
-            cause: error,
-          })
+          throw error
         }
       }
     },

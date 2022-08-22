@@ -1,6 +1,7 @@
 /**
  * This file contains the root router of your tRPC-backend
  */
+import { TRPCError } from '@trpc/server'
 import { ZodError } from 'zod'
 import { createRouter } from '../createRouter'
 import { postRouter } from './post'

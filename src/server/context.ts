@@ -2,12 +2,12 @@
 import * as trpc from '@trpc/server'
 import * as trpcNext from '@trpc/server/adapters/next'
 
-import { unstable_getServerSession } from 'next-auth'
+import { Session, unstable_getServerSession } from 'next-auth'
 import { nextAuthOptions } from './auth'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CreateContextOptions {
-  // session: Session | null
+  session: Session | null
 }
 
 /**
@@ -31,5 +31,5 @@ export async function createContext(
   const { req, res } = opts
   const session = await unstable_getServerSession(req, res, nextAuthOptions)
 
-  return await createContextInner({ req, res, session })
+  return await createContextInner({ session })
 }

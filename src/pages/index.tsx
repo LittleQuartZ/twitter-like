@@ -6,52 +6,43 @@ import { signOut, useSession } from 'next-auth/react'
 
 const Index: NextPage = () => {
   const { data } = useSession()
+  const reloadSession = () => {
+    const event = new Event('visibilitychange')
+    document.dispatchEvent(event)
+  }
 
   // states
   const [usernameInput, setUsernameInput] = useState<string>('')
   const [passwordInput, setPasswordInput] = useState<string>('')
   const [contentInput, setContentInput] = useState<string>('')
-  const [usernameSearch, setUsernameSearch] = useState<string>('')
-  const [deletePostId, setDeletePostId] = useState<number>(1)
 
   // hooks
   const utils = trpc.useContext()
   const userCreateMutation = trpc.useMutation('user.create', {
     onSuccess() {
-      utils.invalidateQueries(['user.find'])
+      utils.invalidateQueries(['user.all'])
     },
   })
-  const userFollowMutation = trpc.useMutation('user.follow', {
-    onSuccess() {
-      utils.invalidateQueries(['user.find'])
-    },
-  })
+  const userFollowMutation = trpc.useMutation('user.follow')
   const postCreateMutation = trpc.useMutation('post.create', {
     onSuccess() {
-      utils.invalidateQueries(['post.find'])
+      utils.invalidateQueries(['post.all'])
     },
   })
   const postDeleteMutation = trpc.useMutation('post.delete', {
     onSuccess() {
-      utils.invalidateQueries(['post.find'])
+      utils.invalidateQueries(['post.all'])
     },
   })
-  const { data: userData } = trpc.useQuery([
-    'user.find',
-    { username: undefined },
-  ])
-  const { data: postData } = trpc.useQuery(['post.find', { id: undefined }])
-
-  const [followId, followedId] = [
-    '9f883b59-e9a6-4221-ac0d-06cadcc2cf9e',
-    '18ed6f74-03e6-4dad-bfa5-e5d655d776a5',
-  ]
+  const { data: users } = trpc.useQuery(['user.all'])
+  const { data: posts } = trpc.useQuery(['post.all'])
+  const authedUser = trpc.useQuery(['user.byId', { id: data?.id as string }])
 
   // Submit handler for user creation
   const createUser = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    userCreateMutation.mutate({
+    userCreateMutation.mutateAsync({
       username: usernameInput,
       password: passwordInput,
     })
@@ -60,25 +51,47 @@ const Index: NextPage = () => {
   const createPost = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    postCreateMutation.mutate({
+    postCreateMutation.mutateAsync({
       content: contentInput,
-      authorId: '3f075d01-cf58-48d5-9f19-3240b509db70',
+      authorId: authedUser?.data?.id as string,
+    })
+  }
+
+  const followUser = (id: string) => {
+    if (authedUser.isError) {
+      signOut()
+    }
+
+    userFollowMutation.mutateAsync({
+      followerId: authedUser.data?.id as string,
+      followingId: id,
     })
   }
 
   const deletePost = (id: number) => {
-    postDeleteMutation.mutate({ id })
-  }
+    if (authedUser.isError) {
+      signOut()
+    }
 
-  const followUser = () => {
-    userFollowMutation.mutate({ followerId: followId, followingId: followedId })
+    postDeleteMutation.mutateAsync({
+      id,
+      userId: authedUser.data?.id as string,
+    })
   }
 
   // Error handling, should probably make a new component
   let errorElement
   if (userCreateMutation.error?.data?.zodError) {
     errorElement = (
-      <div>{userCreateMutation.error.data.zodError.fieldErrors.username}</div>
+      <p>
+        {Object.entries(userCreateMutation.error.data.zodError.fieldErrors).map(
+          ([key, value]) => (
+            <p>
+              {key}: {value?.join(', ')}
+            </p>
+          )
+        )}
+      </p>
     )
   } else if (userCreateMutation.error?.shape?.message) {
     errorElement = <div>{userCreateMutation.error.shape.message}</div>
@@ -86,6 +99,7 @@ const Index: NextPage = () => {
 
   return (
     <div>
+      {authedUser.data && <h1>{authedUser.data.username}</h1>}
       <form onSubmit={createUser}>
         <input
           type='text'
@@ -100,63 +114,39 @@ const Index: NextPage = () => {
           placeholder='password'
         />
         <button type='submit'>Add</button>
-
-        <input
-          type='text'
-          value={usernameSearch}
-          onChange={e => setUsernameSearch(e.target.value)}
-        />
-
-        <br />
       </form>
-      {userData && userData.length !== 0 ? (
-        userData
-          .filter(user =>
-            // case-insensitive filter by username if usernameSearch is set
-            user.username.toLowerCase().includes(usernameSearch.toLowerCase())
-          )
-          .map(user => <h1 key={user.id}>{user.username}</h1>)
-      ) : (
-        <h1>No users found</h1>
-      )}
-      <button type='button' onClick={() => followUser()}>
-        FOLLOW
-      </button>
+
+      {users?.map(user => (
+        <article>
+          <h1>{user.username}</h1>
+          <button onClick={() => followUser(user.id)}>Follow</button>
+        </article>
+      ))}
 
       <form onSubmit={createPost}>
         <input
           type='text'
+          placeholder='content'
           value={contentInput}
           onChange={e => setContentInput(e.target.value)}
-          placeholder='content'
         />
         <button type='submit'>Post</button>
       </form>
-      {postData && postData.length !== 0 ? (
-        postData.map(post => (
-          <div>
-            <p key={post.id}>
-              {post.content} <b>{post.author.username}</b>
-            </p>
-            <button onClick={() => deletePost(post.id)}>DELETE</button>
-          </div>
-        ))
-      ) : (
-        <h1>No posts found</h1>
-      )}
 
-      <form onSubmit={() => deletePost(deletePostId)}>
-        <input
-          type='number'
-          value={deletePostId}
-          onChange={e => setDeletePostId(Number(e.target.value))}
-          placeholder='post id to delete'
-        />
-        <button type='submit'>delete</button>
-      </form>
+      {posts?.map(post => (
+        <article>
+          <p>{post.content}</p>
+          <button type='button' onClick={() => deletePost(post.id)}>
+            DELETE
+          </button>
+        </article>
+      ))}
 
       {errorElement}
-      <button type='button' onClick={() => console.table(data)}>
+      {userFollowMutation.error?.message && (
+        <h2>{userFollowMutation.error.message}</h2>
+      )}
+      <button type='button' onClick={() => console.table(userFollowMutation)}>
         CHECK
       </button>
       <button type='button' onClick={() => signOut()}>
