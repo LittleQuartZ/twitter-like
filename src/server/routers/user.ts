@@ -3,29 +3,21 @@ import { z, ZodError } from 'zod'
 import { prisma } from '../prisma'
 import * as trpc from '@trpc/server'
 import { Prisma } from '@prisma/client'
+import { registerSchema } from '@/utils/validation/auth'
+import { hash } from 'argon2'
 
 export const userRouter = createRouter()
   .mutation('create', {
-    input: z.object({
-      username: z
-        .string({
-          required_error: 'Username is required',
-        })
-        .regex(/^[A-Za-z0-9_]+$/, {
-          message: 'Username must only contains letters and numbers',
-        })
-        .max(20, {
-          message: 'Username must be less than 20 characters',
-        })
-        .min(5, {
-          message: 'Username must be at least 5 characters',
-        }),
-    }),
+    input: registerSchema,
     async resolve({ input }) {
+      const { username, password } = input
       try {
+        const hashedPassword = await hash(password)
+
         const response = await prisma.user.create({
           data: {
-            username: input.username,
+            username,
+            password: hashedPassword,
           },
         })
 
@@ -37,7 +29,7 @@ export const userRouter = createRouter()
         ) {
           // The .code property can be accessed in a type-safe manner
           throw new trpc.TRPCError({
-            code: 'BAD_REQUEST',
+            code: 'CONFLICT',
             message: 'Username already exists',
           })
         } else if (error instanceof ZodError) {

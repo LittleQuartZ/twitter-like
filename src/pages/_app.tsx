@@ -6,10 +6,11 @@ import { withTRPC } from '@trpc/next'
 import { AppRouter } from '@/server/routers/_app'
 import { SSRContext } from '@/utils/trpc'
 import Head from 'next/head'
+import { SessionProvider } from 'next-auth/react'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <>
+    <SessionProvider session={pageProps.session}>
       <Head>
         <title>Twitter Like</title>
         <meta
@@ -18,7 +19,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
       </Head>
       <Component {...pageProps} />
-    </>
+    </SessionProvider>
   )
 }
 
@@ -62,6 +63,9 @@ export default withTRPC<AppRouter>({
           url: `${getBaseUrl()}/api/trpc`,
         }),
       ],
+      headers: {
+        'x-ssr': '1',
+      },
       /**
        * @link https://react-query.tanstack.com/reference/QueryClient
        */

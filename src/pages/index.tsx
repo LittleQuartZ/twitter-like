@@ -1,10 +1,15 @@
 import type { NextPage } from 'next'
 import { trpc } from '@/utils/trpc'
 import { useState } from 'react'
+import { requireAuth } from '@/utils/requireAuth'
+import { signOut, useSession } from 'next-auth/react'
 
 const Index: NextPage = () => {
+  const { data } = useSession()
+
   // states
   const [usernameInput, setUsernameInput] = useState<string>('')
+  const [passwordInput, setPasswordInput] = useState<string>('')
   const [contentInput, setContentInput] = useState<string>('')
   const [usernameSearch, setUsernameSearch] = useState<string>('')
   const [deletePostId, setDeletePostId] = useState<number>(1)
@@ -46,7 +51,10 @@ const Index: NextPage = () => {
   const createUser = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    userCreateMutation.mutate({ username: usernameInput })
+    userCreateMutation.mutate({
+      username: usernameInput,
+      password: passwordInput,
+    })
   }
 
   const createPost = (e: React.FormEvent<HTMLFormElement>) => {
@@ -84,6 +92,12 @@ const Index: NextPage = () => {
           value={usernameInput}
           onChange={e => setUsernameInput(e.target.value)}
           placeholder='username'
+        />
+        <input
+          type='text'
+          value={passwordInput}
+          onChange={e => setPasswordInput(e.target.value)}
+          placeholder='password'
         />
         <button type='submit'>Add</button>
 
@@ -142,11 +156,18 @@ const Index: NextPage = () => {
       </form>
 
       {errorElement}
-      <button type='button' onClick={() => console.table(userData)}>
+      <button type='button' onClick={() => console.table(data)}>
         CHECK
+      </button>
+      <button type='button' onClick={() => signOut()}>
+        Logout
       </button>
     </div>
   )
 }
+
+export const getServerSideProps = requireAuth(async () => {
+  return { props: {} }
+})
 
 export default Index

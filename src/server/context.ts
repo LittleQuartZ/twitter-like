@@ -2,6 +2,9 @@
 import * as trpc from '@trpc/server'
 import * as trpcNext from '@trpc/server/adapters/next'
 
+import { unstable_getServerSession } from 'next-auth'
+import { nextAuthOptions } from './auth'
+
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CreateContextOptions {
   // session: Session | null
@@ -12,7 +15,7 @@ interface CreateContextOptions {
  * This is useful for testing when we don't want to mock Next.js' request/response
  */
 export async function createContextInner(_opts: CreateContextOptions) {
-  return {}
+  return _opts
 }
 
 export type Context = trpc.inferAsyncReturnType<typeof createContextInner>
@@ -25,6 +28,8 @@ export async function createContext(
   opts: trpcNext.CreateNextContextOptions
 ): Promise<Context> {
   // for API-response caching see https://trpc.io/docs/caching
+  const { req, res } = opts
+  const session = await unstable_getServerSession(req, res, nextAuthOptions)
 
-  return await createContextInner({})
+  return await createContextInner({ req, res, session })
 }
