@@ -57,8 +57,8 @@ const Register: NextPage = () => {
         </form>
       </main>
 
-      {Object.values(formState.errors).map(({ message }) => (
-        <p>{message}</p>
+      {Object.values(formState.errors).map(({ message }, index) => (
+        <p key={index}>{message}</p>
       ))}
     </div>
   )

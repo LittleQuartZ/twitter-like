@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const postSchema = z.object({
+export const postCreateSchema = z.object({
   content: z
     .string()
     .max(140, { message: 'Max content length reached' })
@@ -8,4 +8,4 @@ export const postSchema = z.object({
   authorId: z.string().uuid({ message: 'Invalid UUID' }),
 })
 
-export type IPost = z.infer<typeof postSchema>
+export type IPost = z.infer<typeof postCreateSchema>

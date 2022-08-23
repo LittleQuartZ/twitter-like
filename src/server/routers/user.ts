@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client'
 import { registerSchema } from '@/utils/validation/auth'
 import { hash } from 'argon2'
 
-const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
+export const defaultUserSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
   username: true,
   password: false,

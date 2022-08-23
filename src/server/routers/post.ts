@@ -2,14 +2,26 @@ import { createRouter } from '../createRouter'
 import { z } from 'zod'
 import { prisma } from '../prisma'
 import * as trpc from '@trpc/server'
-import { postSchema } from '@/utils/validation/post'
+import { postCreateSchema } from '@/utils/validation/post'
+import { Prisma } from '@prisma/client'
+import { defaultUserSelect } from './user'
+
+export const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
+  id: true,
+  content: true,
+  createdAt: true,
+  author: {
+    select: defaultUserSelect,
+  },
+})
 
 export const postRouter = createRouter()
   .mutation('create', {
-    input: postSchema,
+    input: postCreateSchema,
     async resolve({ input }) {
       const response = await prisma.post.create({
         data: { content: input.content, authorId: input.authorId },
+        select: defaultPostSelect,
       })
 
       return response
@@ -17,7 +29,10 @@ export const postRouter = createRouter()
   })
   .query('all', {
     async resolve() {
-      const response = await prisma.post.findMany()
+      const response = await prisma.post.findMany({
+        select: defaultPostSelect,
+        orderBy: { createdAt: 'desc' },
+      })
 
       if (!response) {
         throw new trpc.TRPCError({
@@ -36,9 +51,7 @@ export const postRouter = createRouter()
     async resolve({ input }) {
       const response = await prisma.post.findFirst({
         where: { id: input.id },
-        include: {
-          author: { select: { id: true, username: true } },
-        },
+        select: defaultPostSelect,
       })
 
       if (!response) {

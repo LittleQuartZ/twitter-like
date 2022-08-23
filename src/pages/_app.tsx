@@ -42,7 +42,6 @@ function getBaseUrl() {
 }
 
 export default withTRPC<AppRouter>({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   config() {
     /**
      * If you want to use SSR, you need to use the server's full URL
