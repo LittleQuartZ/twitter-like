@@ -4,18 +4,17 @@ import { requireAuth } from '@/utils/requireAuth'
 import { signOut, useSession } from 'next-auth/react'
 import PostList from '@/components/PostList'
 import FloatActionButton from '@/components/FAB'
-import AddPost from '@/components/AddPost'
 
 export const getServerSideProps = requireAuth(async () => {
   return { props: {} }
 })
 
 const Index: NextPage = () => {
-  const { data } = useSession()
+  const { data: session } = useSession()
 
   const { data: userData, isLoading: userDataIsLoading } = trpc.useQuery([
     'user.byId',
-    { id: data?.id as string },
+    { id: session?.id as string },
   ])
 
   // states
