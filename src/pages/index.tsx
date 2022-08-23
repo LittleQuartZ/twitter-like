@@ -3,6 +3,11 @@ import { trpc } from '@/utils/trpc'
 import { useState } from 'react'
 import { requireAuth } from '@/utils/requireAuth'
 import { signOut, useSession } from 'next-auth/react'
+import Link from 'next/link'
+
+export const getServerSideProps = requireAuth(async () => {
+  return { props: {} }
+})
 
 const Index: NextPage = () => {
   const { data } = useSession()
@@ -117,8 +122,9 @@ const Index: NextPage = () => {
       </form>
 
       {users?.map(user => (
-        <article>
+        <article key={user.id}>
           <h1>{user.username}</h1>
+          <Link href={`/user/${user.id}`}>goto page</Link>
           <button onClick={() => followUser(user.id)}>Follow</button>
         </article>
       ))}
@@ -134,7 +140,7 @@ const Index: NextPage = () => {
       </form>
 
       {posts?.map(post => (
-        <article>
+        <article key={post.id}>
           <p>{post.content}</p>
           <button type='button' onClick={() => deletePost(post.id)}>
             DELETE
@@ -155,9 +161,5 @@ const Index: NextPage = () => {
     </div>
   )
 }
-
-export const getServerSideProps = requireAuth(async () => {
-  return { props: {} }
-})
 
 export default Index

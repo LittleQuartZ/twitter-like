@@ -43,7 +43,6 @@ export const nextAuthOptions: NextAuthOptions = {
     jwt: async ({ user, token }) => {
       if (user) {
         token.id = user.id
-        token.username = user.username
       }
 
       return token

@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as trpc from '@trpc/server'
 import * as trpcNext from '@trpc/server/adapters/next'
+import { NextApiRequest, NextApiResponse } from 'next'
 
 import { Session, unstable_getServerSession } from 'next-auth'
 import { nextAuthOptions } from './auth'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CreateContextOptions {
+  req: NextApiRequest
+  res: NextApiResponse
   session: Session | null
 }
 
@@ -31,5 +34,5 @@ export async function createContext(
   const { req, res } = opts
   const session = await unstable_getServerSession(req, res, nextAuthOptions)
 
-  return await createContextInner({ session })
+  return await createContextInner({ req, res, session })
 }
