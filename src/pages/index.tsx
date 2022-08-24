@@ -120,7 +120,7 @@ const Index: NextPage = () => {
           Logout
         </button>
       </header>
-      <PostList userData={userData} />
+      <PostList />
       <FloatActionButton />
     </section>
   )

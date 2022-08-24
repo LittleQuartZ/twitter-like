@@ -1,10 +1,4 @@
-import { trpc } from '@/utils/trpc'
-import {
-  ChatBubbleIcon,
-  HeartFilledIcon,
-  HeartIcon,
-  Link1Icon,
-} from '@radix-ui/react-icons'
+import { ChatBubbleIcon, HeartIcon, Link1Icon } from '@radix-ui/react-icons'
 
 const formatTime: (date: Date) => string = (date: Date) => {
   const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
@@ -37,24 +31,9 @@ interface Props {
     }
     createdAt: Date
   }
-  liked: boolean
-  userId: string
 }
 
-const Post: React.FC<Props> = ({ post, liked, userId }) => {
-  const utils = trpc.useContext()
-  const { mutateAsync } = trpc.useMutation('post.like', {
-    onSuccess() {
-      utils.invalidateQueries('post.all')
-      utils.invalidateQueries('user.byId')
-    },
-  })
-
-  const likePost = () => {
-    liked = !liked
-    mutateAsync({ id: post.id, userId, like: liked })
-  }
-
+const Post: React.FC<Props> = ({ post }) => {
   return (
     <article className='bg-zinc-50 overflow-clip border-b-2 border-indigo-100'>
       <header className='bg-zinc-100 px-4 py-2 flex justify-between'>
@@ -69,17 +48,15 @@ const Post: React.FC<Props> = ({ post, liked, userId }) => {
       </main>
 
       <footer className='px-4 py-2 border-t-2 border-zinc-100 flex items-center gap-4'>
-        <button
-          onClick={likePost}
-          className={liked ? 'text-red-300' : 'text-black'}>
-          {liked ? <HeartFilledIcon /> : <HeartIcon />}
-        </button>
-        <button>
+        <span>
+          <HeartIcon />
+        </span>
+        <span>
           <ChatBubbleIcon />
-        </button>
-        <button className='ml-auto'>
+        </span>
+        <span className='ml-auto'>
           <Link1Icon />
-        </button>
+        </span>
       </footer>
     </article>
   )

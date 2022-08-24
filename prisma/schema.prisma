@@ -20,9 +20,7 @@ model User {
   followedBy User[] @relation("UserFollows")
   following  User[] @relation("UserFollows")
 
-  posts Post[] @relation(name: "author")
-
-  likedPosts Post[]
+  posts Post[]
 }
 
 model Post {
@@ -30,10 +28,8 @@ model Post {
 
   content String
 
-  author   User   @relation(name: "author", fields: [authorId], references: [id])
+  author   User   @relation(fields: [authorId], references: [id])
   authorId String
-
-  likedBy User[]
 
   createdAt DateTime @default(now())
 }
