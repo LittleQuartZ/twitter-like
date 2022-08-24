@@ -71,7 +71,7 @@ const SignIn: NextPage = () => {
           </div>
           <Link href='/register'>
             <a className='text-indigo-500 focus:underline focus:outline-none focus:font-bold ml-auto'>
-              Don't have an account? Register
+              Don&apos;t have an account? Register
             </a>
           </Link>
         </form>
