@@ -12,10 +12,15 @@ export const getServerSideProps = requireAuth(async () => {
 const Index: NextPage = () => {
   const { data: session } = useSession()
 
-  const { data: userData, isLoading: userDataIsLoading } = trpc.useQuery([
-    'user.byId',
-    { id: session?.id as string },
-  ])
+  const {
+    data: userData,
+    isLoading: userDataIsLoading,
+    isError,
+  } = trpc.useQuery(['user.byId', { id: session?.id as string }])
+
+  if (isError) {
+    signOut()
+  }
 
   // states
   // const [usernameInput, setUsernameInput] = useState<string>('')

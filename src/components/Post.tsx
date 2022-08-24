@@ -1,4 +1,12 @@
-import { ChatBubbleIcon, HeartIcon, Link1Icon } from '@radix-ui/react-icons'
+import { trpc } from '@/utils/trpc'
+import {
+  ChatBubbleIcon,
+  HeartFilledIcon,
+  HeartIcon,
+  Link1Icon,
+} from '@radix-ui/react-icons'
+import { useSession } from 'next-auth/react'
+import { useState } from 'react'
 
 const formatTime: (date: Date) => string = (date: Date) => {
   const weekday = date.toLocaleDateString('en-US', { weekday: 'short' })
@@ -34,6 +42,33 @@ interface Props {
 }
 
 const Post: React.FC<Props> = ({ post }) => {
+  const { data: session } = useSession()
+  const { data: userData } = trpc.useQuery([
+    'user.byId',
+    { id: session?.id as string },
+  ])
+  const utils = trpc.useContext()
+
+  const [liked, setLiked] = useState<boolean>(
+    userData?.likedPosts.filter(liked => liked.id === post.id).length !== 0
+  )
+
+  const { mutate } = trpc.useMutation('post.update', {
+    onMutate(input) {
+      setLiked(!liked)
+    },
+    onSettled() {
+      utils.invalidateQueries('post.all')
+    },
+  })
+
+  const likePost = () => {
+    mutate({
+      id: post.id,
+      data: { likedBy: { id: session?.id as string, like: !liked } },
+    })
+  }
+
   return (
     <article className='bg-zinc-50 overflow-clip border-b-2 border-indigo-100'>
       <header className='bg-zinc-100 px-4 py-2 flex justify-between'>
@@ -48,15 +83,17 @@ const Post: React.FC<Props> = ({ post }) => {
       </main>
 
       <footer className='px-4 py-2 border-t-2 border-zinc-100 flex items-center gap-4'>
-        <span>
-          <HeartIcon />
-        </span>
-        <span>
+        <button
+          className={liked ? 'text-red-300' : 'text-black'}
+          onClick={() => likePost()}>
+          {liked ? <HeartFilledIcon /> : <HeartIcon />}
+        </button>
+        <button>
           <ChatBubbleIcon />
-        </span>
-        <span className='ml-auto'>
+        </button>
+        <button className='ml-auto'>
           <Link1Icon />
-        </span>
+        </button>
       </footer>
     </article>
   )

@@ -65,6 +65,7 @@ export const userRouter = createRouter()
           followedBy: true,
           following: true,
           posts: true,
+          likedPosts: true,
         },
       })
 
@@ -102,26 +103,15 @@ export const userRouter = createRouter()
           })
         }
 
-        const response = await prisma.$transaction([
-          prisma.user.update({
-            where: { id: input.followerId },
-            data: {
-              following: {
-                connect: { id: input.followingId },
-              },
+        const response = await prisma.user.update({
+          where: { id: input.followerId },
+          data: {
+            following: {
+              connect: { id: input.followingId },
             },
-            select: defaultUserSelect,
-          }),
-          prisma.user.update({
-            where: { id: input.followingId },
-            data: {
-              followedBy: {
-                connect: { id: input.followerId },
-              },
-            },
-            select: defaultUserSelect,
-          }),
-        ])
+          },
+          select: defaultUserSelect,
+        })
 
         return response
       } catch (error: unknown) {
@@ -163,26 +153,15 @@ export const userRouter = createRouter()
           })
         }
 
-        const response = await prisma.$transaction([
-          prisma.user.update({
-            where: { id: input.followerId },
-            data: {
-              following: {
-                disconnect: { id: input.followingId },
-              },
+        const response = await prisma.user.update({
+          where: { id: input.followerId },
+          data: {
+            following: {
+              disconnect: { id: input.followingId },
             },
-            select: defaultUserSelect,
-          }),
-          prisma.user.update({
-            where: { id: input.followingId },
-            data: {
-              followedBy: {
-                disconnect: { id: input.followerId },
-              },
-            },
-            select: defaultUserSelect,
-          }),
-        ])
+          },
+          select: defaultUserSelect,
+        })
 
         return response
       } catch (error: unknown) {

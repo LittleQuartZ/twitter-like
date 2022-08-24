@@ -89,3 +89,56 @@ export const postRouter = createRouter()
       return response
     },
   })
+  .mutation('update', {
+    input: z.object({
+      id: z.number().min(1),
+      data: z.object({
+        content: z
+          .string()
+          .max(140, { message: 'Max content length reached' })
+          .min(1, { message: 'Content cannot be empty' })
+          .nullish(),
+        authorId: z.string().uuid({ message: 'Invalid UUID' }).nullish(),
+        likedBy: z
+          .object({
+            id: z.string().uuid().nullish(),
+            like: z.boolean().nullish(),
+          })
+          .nullish(),
+      }),
+    }),
+    async resolve({ input }) {
+      try {
+        const like = input.data.likedBy?.like ? 'connect' : 'disconnect'
+
+        const response = await prisma.post.update({
+          where: { id: input.id },
+          data: {
+            content: input.data.content || undefined,
+            authorId: input.data.authorId || undefined,
+            likedBy:
+              {
+                [like]:
+                  {
+                    id: input.data.likedBy?.id || undefined,
+                  } || undefined,
+              } || undefined,
+          },
+        })
+
+        return response
+      } catch (error: unknown) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2025'
+        ) {
+          throw new trpc.TRPCError({
+            code: 'NOT_FOUND',
+            message: 'There is no post found with given id',
+          })
+        } else {
+          throw error
+        }
+      }
+    },
+  })
