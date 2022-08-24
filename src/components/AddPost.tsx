@@ -3,7 +3,7 @@ import { IPost, postCreateSchema } from '@/utils/validation/post'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { useSession } from 'next-auth/react'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface Props {
@@ -15,6 +15,7 @@ const AddPost: React.FC<Props> = ({ setOpen }) => {
     handleSubmit,
     register,
     setValue,
+    setFocus,
     formState: { errors },
   } = useForm<IPost>({
     resolver: zodResolver(postCreateSchema),
@@ -25,6 +26,10 @@ const AddPost: React.FC<Props> = ({ setOpen }) => {
     'user.byId',
     { id: session?.id as string },
   ])
+
+  useEffect(() => {
+    setFocus('content')
+  }, [])
 
   const utils = trpc.useContext()
   const { mutateAsync } = trpc.useMutation('post.create', {

@@ -38,9 +38,7 @@ const FloatActionButton = () => {
               <DialogPrimitive.DialogOverlay className='bg-zinc-900 opacity-50 fixed inset-0 motion-safe:animate-fadeIn motion-safe:animate-ease-in-quad motion-safe:animate-duration-200' />
               <DialogContent className='flex flex-col rounded-lg shadow-lg gap-4 p-4 bg-indigo-200 w-4/5 fixed bottom-1/2 right-1/2 translate-x-1/2 translate-y-1/2'>
                 <header className='flex justify-between items-center px-2'>
-                  <DialogTitle>
-                    <h1 className='text-lg'>New Post</h1>
-                  </DialogTitle>
+                  <DialogTitle className='text-lg'>New Post</DialogTitle>
                   <DialogClose className='hover:text-red-500 rounded-full'>
                     <Cross1Icon />
                   </DialogClose>
