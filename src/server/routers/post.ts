@@ -89,3 +89,35 @@ export const postRouter = createRouter()
       return response
     },
   })
+  .mutation('like', {
+    input: z.object({
+      id: z
+        .number({
+          required_error: 'Id is required',
+          invalid_type_error: 'Id must be a number greater than 1',
+        })
+        .min(1),
+      userId: z
+        .string({
+          required_error: 'Need a user id',
+          invalid_type_error: 'user id must be a string',
+        })
+        .uuid({ message: 'user id must be a valid UUID' }),
+      like: z.boolean(),
+    }),
+    async resolve({ input }) {
+      let response
+
+      input.like
+        ? (response = await prisma.post.update({
+            where: { id: input.id },
+            data: { likedBy: { connect: { id: input.userId } } },
+          }))
+        : (response = await prisma.post.update({
+            where: { id: input.id },
+            data: { likedBy: { disconnect: { id: input.userId } } },
+          }))
+
+      return response
+    },
+  })
