@@ -54,7 +54,7 @@ const Post: React.FC<Props> = ({ post }) => {
   )
 
   const { mutate } = trpc.useMutation('post.update', {
-    onMutate(input) {
+    onMutate() {
       setLiked(!liked)
     },
     onSettled() {

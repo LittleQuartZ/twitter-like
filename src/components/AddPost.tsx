@@ -21,10 +21,40 @@ const AddPost: React.FC<Props> = ({ setOpen }) => {
   })
 
   const { data: session } = useSession()
+  const { data: userData } = trpc.useQuery([
+    'user.byId',
+    { id: session?.id as string },
+  ])
 
   const utils = trpc.useContext()
   const { mutateAsync } = trpc.useMutation('post.create', {
-    onSuccess() {
+    onMutate(input) {
+      const prevPosts = utils.getQueryData(['post.all'])
+
+      utils.setQueryData(['post.all'], (prevPosts: any) => [
+        {
+          content: input.content,
+          authorId: input.authorId,
+          author: {
+            username: userData?.username,
+          },
+          createdAt: new Date(),
+        },
+        ...prevPosts,
+      ])
+
+      setOpen(false)
+
+      return { prevPosts }
+    },
+    onError(_, input, context) {
+      utils.setQueryData(['post.all'], context?.prevPosts as any)
+
+      setValue('content', input.content)
+      setValue('authorId', input.authorId)
+      setOpen(true)
+    },
+    onSettled() {
       utils.invalidateQueries('post.all')
     },
   })
@@ -32,11 +62,10 @@ const AddPost: React.FC<Props> = ({ setOpen }) => {
   setValue('authorId', session?.id as string)
 
   const onSubmit = useCallback(
-    async (data: IPost) => {
-      await mutateAsync(data)
-      setOpen(false)
+    (data: IPost) => {
+      mutateAsync(data)
     },
-    [mutateAsync, setOpen]
+    [mutateAsync]
   )
 
   return (
