@@ -4,12 +4,13 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { trpc } from '@/utils/trpc'
 
 import * as LabelPrimitive from '@radix-ui/react-label'
+import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons'
 
 const inputClassName =
   'p-4 w-full max-w-full resize-none bg-blue-200 rounded-md placeholder:text-blue-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition'
@@ -20,6 +21,7 @@ const Label = LabelPrimitive.Root
 
 const Register: NextPage = () => {
   const router = useRouter()
+  const [loading, setLoading] = useState<boolean>(false)
 
   const {
     register,
@@ -34,13 +36,16 @@ const Register: NextPage = () => {
 
   const onSubmit = useCallback(
     async (data: IRegister) => {
-      const result = await mutateAsync(data)
+      if (!loading) {
+        setLoading(true)
+        const result = await mutateAsync(data)
 
-      if (result.username) {
-        router.push('/signin')
+        if (result.username) {
+          router.push('/signin')
+        }
       }
     },
-    [mutateAsync, router]
+    [mutateAsync, router, setLoading]
   )
 
   let errorElement
@@ -98,11 +103,19 @@ const Register: NextPage = () => {
           <button
             type='submit'
             className='bg-blue-300 text-blue-900 px-4 py-2 rounded-md flex-1 font-bold w-full focus:ring-2 focus:ring-blue-500 focus:outline-none'>
-            Register
+            {loading ? (
+              <div className='flex items-center justify-center gap-4'>
+                <ReloadIcon className='text-blue-900 animate-twSpin animate-infinite' />{' '}
+                Loading...
+              </div>
+            ) : (
+              'Register'
+            )}
           </button>
           <Link href='/signin'>
-            <a className='text-blue-500 focus:underline focus:outline-none focus:font-bold ml-auto'>
-              Already have an account? Login
+            <a className='text-indigo-500 focus:underline hover:underline hover:font-bold focus:outline-none focus:font-bold ml-auto group'>
+              Already have an account? Login{' '}
+              <ArrowRightIcon className='inline group-hover:animate-slideOutRight group-hover:animate-infinite group-hover:animate-distance-1 group-hover:animate-alternate' />
             </a>
           </Link>
         </form>

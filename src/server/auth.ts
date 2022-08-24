@@ -11,7 +11,7 @@ export const nextAuthOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         username: {
-          label: 'Email',
+          label: 'Username',
           type: 'text',
           placeholder: 'user_nam3',
         },
