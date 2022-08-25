@@ -15,12 +15,6 @@ const Index: NextPage = () => {
   const { data: session } = useSession()
   const utils = trpc.useContext()
 
-  const handleScroll = () => {
-    if (window.scrollY === 0) {
-      utils.invalidateQueries('post.all')
-    }
-  }
-
   const handleHeaderClick = () => {
     if (window.scrollY === 0) {
       utils.invalidateQueries('post.all')
@@ -30,12 +24,18 @@ const Index: NextPage = () => {
   }
 
   useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY === 0) {
+        utils.invalidateQueries('post.all')
+      }
+    }
+
     window.addEventListener('scroll', handleScroll)
 
     return () => {
       window.removeEventListener('scroll', handleScroll)
     }
-  }, [])
+  }, [utils])
 
   const {
     data: userData,

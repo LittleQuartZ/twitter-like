@@ -6,6 +6,7 @@ const Footer = () => {
       <a
         className='flex bg-zinc-200 w-fit items-center gap-2 px-2 py-1 transition rounded-lg focus:ring-zinc-500 focus:ring-2'
         href='https://github.com/littlequartz/twitter-like'
+        rel='noreferrer'
         target='_blank'>
         <GitHubLogoIcon className='inline' /> GitHub
       </a>

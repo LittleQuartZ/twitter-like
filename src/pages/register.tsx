@@ -45,7 +45,7 @@ const Register: NextPage = () => {
         }
       }
     },
-    [mutateAsync, router, setLoading]
+    [mutateAsync, router, loading]
   )
 
   let errorElement

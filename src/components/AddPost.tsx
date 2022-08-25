@@ -31,7 +31,7 @@ const AddPost: React.FC<Props> = ({ setOpen }) => {
 
   useEffect(() => {
     setFocus('content')
-  }, [])
+  }, [setFocus])
 
   const utils = trpc.useContext()
   const { mutateAsync } = trpc.useMutation('post.create', {

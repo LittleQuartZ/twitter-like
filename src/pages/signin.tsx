@@ -25,12 +25,15 @@ const SignIn: NextPage = () => {
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = useCallback(async (data: ILogin) => {
-    if (!loading) {
-      setLoading(true)
-      await signIn('credentials', { ...data, callbackUrl: '/' })
-    }
-  }, [])
+  const onSubmit = useCallback(
+    async (data: ILogin) => {
+      if (!loading) {
+        setLoading(true)
+        await signIn('credentials', { ...data, callbackUrl: '/' })
+      }
+    },
+    [loading]
+  )
 
   return (
     <div>
