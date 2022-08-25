@@ -6,6 +6,7 @@ import {
   Link1Icon,
 } from '@radix-ui/react-icons'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { useState } from 'react'
 
 const formatTime: (date: Date) => string = (date: Date) => {
@@ -53,7 +54,7 @@ const Post: React.FC<Props> = ({ post }) => {
     userData?.likedPosts.filter(liked => liked.id === post.id).length !== 0
   )
 
-  const { mutate } = trpc.useMutation('post.update', {
+  const { mutateAsync } = trpc.useMutation('post.update', {
     onMutate() {
       setLiked(!liked)
     },
@@ -63,7 +64,7 @@ const Post: React.FC<Props> = ({ post }) => {
   })
 
   const likePost = () => {
-    mutate({
+    mutateAsync({
       id: post.id,
       data: { likedBy: { id: session?.id as string, like: !liked } },
     })
@@ -72,7 +73,9 @@ const Post: React.FC<Props> = ({ post }) => {
   return (
     <article className='bg-zinc-50 overflow-clip border-b-2 border-indigo-100'>
       <header className='bg-zinc-100 px-4 py-2 flex justify-between'>
-        <h1 className='font-bold'>{post.author.username}</h1>
+        <Link href={`/user/${post.author.id}`}>
+          <a className='font-bold hover:underline'>{post.author.username}</a>
+        </Link>
         <span className='text-zinc-400 ml-auto'>
           {formatTime(new Date(post.createdAt))}
         </span>

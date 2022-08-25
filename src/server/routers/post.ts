@@ -92,20 +92,16 @@ export const postRouter = createRouter()
   .mutation('update', {
     input: z.object({
       id: z.number().min(1),
-      data: z.object({
-        content: z
-          .string()
-          .max(140, { message: 'Max content length reached' })
-          .min(1, { message: 'Content cannot be empty' })
-          .nullish(),
-        authorId: z.string().uuid({ message: 'Invalid UUID' }).nullish(),
-        likedBy: z
-          .object({
-            id: z.string().uuid().nullish(),
-            like: z.boolean().nullish(),
-          })
-          .nullish(),
-      }),
+      data: postCreateSchema
+        .extend({
+          likedBy: z
+            .object({
+              id: z.string().uuid().nullish(),
+              like: z.boolean().nullish(),
+            })
+            .nullish(),
+        })
+        .partial(),
     }),
     async resolve({ input }) {
       try {
@@ -124,6 +120,7 @@ export const postRouter = createRouter()
                   } || undefined,
               } || undefined,
           },
+          select: defaultPostSelect,
         })
 
         return response

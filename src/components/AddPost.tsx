@@ -3,6 +3,7 @@ import { IPost, postCreateSchema } from '@/utils/validation/post'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/router'
 import { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -26,6 +27,7 @@ const AddPost: React.FC<Props> = ({ setOpen }) => {
     'user.byId',
     { id: session?.id as string },
   ])
+  const router = useRouter()
 
   useEffect(() => {
     setFocus('content')
@@ -34,33 +36,38 @@ const AddPost: React.FC<Props> = ({ setOpen }) => {
   const utils = trpc.useContext()
   const { mutateAsync } = trpc.useMutation('post.create', {
     onMutate(input) {
-      const prevPosts = utils.getQueryData(['post.all'])
-
-      utils.setQueryData(['post.all'], (prevPosts: any) => [
-        {
-          content: input.content,
-          authorId: input.authorId,
-          author: {
-            username: userData?.username,
-          },
-          createdAt: new Date(),
-        },
-        ...prevPosts,
-      ])
-
       setOpen(false)
+      if (router.asPath === '/') {
+        const prevPosts = utils.getQueryData(['post.all'])
 
-      return { prevPosts }
+        utils.setQueryData(['post.all'], (prevPosts: any) => [
+          {
+            content: input.content,
+            authorId: input.authorId,
+            author: {
+              username: userData?.username,
+            },
+            createdAt: new Date(),
+          },
+          ...prevPosts,
+        ])
+
+        return { prevPosts }
+      }
     },
     onError(_, input, context) {
-      utils.setQueryData(['post.all'], context?.prevPosts as any)
-
       setValue('content', input.content)
       setValue('authorId', input.authorId)
+
       setOpen(true)
+      if (router.asPath === '/') {
+        utils.setQueryData(['post.all'], context?.prevPosts as any)
+      }
     },
     onSettled() {
-      utils.invalidateQueries('post.all')
+      if (router.asPath === '/') {
+        utils.invalidateQueries('post.all')
+      }
     },
   })
 

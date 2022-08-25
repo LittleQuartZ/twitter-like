@@ -5,6 +5,7 @@ import { signOut, useSession } from 'next-auth/react'
 import PostList from '@/components/PostList'
 import FloatActionButton from '@/components/FAB'
 import { useEffect } from 'react'
+import Footer from '@/components/Footer'
 
 export const getServerSideProps = requireAuth(async () => {
   return { props: {} }
@@ -46,18 +47,15 @@ const Index: NextPage = () => {
     signOut()
   }
 
-  if (userDataIsLoading) {
-    // TODO: Create placeholder component
-    return <h1>Loading...</h1>
-  }
-
   return (
     <section>
       <header className='p-4 bg-indigo-200 flex justify-between items-center sticky top-0'>
         <h1
           onClick={handleHeaderClick}
           className='font-bold text-xl text-indigo-900 cursor-pointer'>
-          Logged in as {userData?.username}
+          {userDataIsLoading
+            ? 'Loading...'
+            : `Logged in as ${userData?.username}`}
         </h1>
         <button
           onClick={() => signOut()}
@@ -67,6 +65,7 @@ const Index: NextPage = () => {
       </header>
       <FloatActionButton />
       <PostList />
+      <Footer />
     </section>
   )
 }

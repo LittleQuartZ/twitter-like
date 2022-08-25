@@ -64,7 +64,19 @@ export const userRouter = createRouter()
           ...defaultUserSelect,
           followedBy: true,
           following: true,
-          posts: true,
+          posts: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            include: {
+              author: {
+                select: {
+                  username: true,
+                  id: true,
+                },
+              },
+            },
+          },
           likedPosts: true,
         },
       })
