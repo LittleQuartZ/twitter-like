@@ -62,8 +62,8 @@ export const userRouter = createRouter()
         where: { id: input.id },
         select: {
           ...defaultUserSelect,
-          followedBy: true,
-          following: true,
+          followedBy: { select: defaultUserSelect },
+          following: { select: defaultUserSelect },
           posts: {
             orderBy: {
               createdAt: 'desc',

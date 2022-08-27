@@ -23,7 +23,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   )
 }
 
-function getBaseUrl() {
+export function getBaseUrl() {
   if (typeof window !== 'undefined') {
     return ''
   }
